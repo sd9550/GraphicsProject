@@ -1,8 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseListener;
 
-public class Creature extends JComponent {
+public class Creature {
 
     private int health;
     private Image creatureImage;
