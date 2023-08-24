@@ -32,6 +32,8 @@ public class Goblin extends Creature {
         this.isSleeping = false;
         this.isSelected = false;
         this.miningProgress = 0;
+        this.arrivedX = false;
+        this.arrivedY = false;
     }
 
     public void goblinBehavior() {
@@ -39,8 +41,9 @@ public class Goblin extends Creature {
             this.startSleep();
         }
         else if (currentRole == MINER && !this.isSleeping) {
-            if (this.miningProgress > UPPER_BOUND)
+            if (this.miningProgress > UPPER_BOUND) {
                 this.returnGoods();
+            }
             else
                 this.startMining();
         } else if (currentRole == GUARD && !this.isSleeping) {
@@ -65,12 +68,16 @@ public class Goblin extends Creature {
         this.setCreatureImage(SLEEPING_IMAGE);
     }
 
+    private void startWalking() {
+        int xDistanceFromRocks = 50 - this.getX();
+        int yDistanceFromRocks = 150 - this.getY();
+        this.xSteps = xDistanceFromRocks / 5;
+        this.ySteps = yDistanceFromRocks / 5;
+    }
+
     private void startMining() {
         int xDistanceFromRocks = 50 - this.getX();
         int yDistanceFromRocks = 150 - this.getY();
-        this.arrivedX = false;
-        this.arrivedY = false;
-
         this.xSteps = xDistanceFromRocks / 5;
         this.ySteps = yDistanceFromRocks / 5;
 
@@ -100,12 +107,8 @@ public class Goblin extends Creature {
     private void startGuarding() {
         int xDistanceFromEntrance = 500 - this.getX();
         int yDistanceFromEntrance = 400 - this.getY();
-        this.arrivedX = false;
-        this.arrivedY = false;
-
         this.xSteps = xDistanceFromEntrance / 5;
         this.ySteps = yDistanceFromEntrance / 5;
-
 
         if (xSteps < 0) {
             this.setX(this.getX() - MOVEMENT_SPEED);
@@ -131,9 +134,6 @@ public class Goblin extends Creature {
     public void startCrafting() {
         int xDistanceFromGrass = 100 - this.getX();
         int yDistanceFromGrass = 560 - this.getY();
-        this.arrivedX = false;
-        this.arrivedY = false;
-
         this.xSteps = xDistanceFromGrass / 5;
         this.ySteps = yDistanceFromGrass / 5;
 
@@ -162,12 +162,8 @@ public class Goblin extends Creature {
         this.setCreatureImage(DEFAULT_IMAGE);
         int xDistanceFromGrass = 150 - this.getX();
         int yDistanceFromGrass = 560 - this.getY();
-        this.arrivedX = false;
-        this.arrivedY = false;
-
         this.xSteps = xDistanceFromGrass / 5;
         this.ySteps = yDistanceFromGrass / 5;
-
 
         if (xSteps < 0) {
             this.setX(this.getX() - MOVEMENT_SPEED);

@@ -35,13 +35,18 @@ public class Board extends JPanel implements ActionListener, KeyListener {
     private ArrayList<Goblin> goblins = new ArrayList<>();
 
     public Board() {
-        sound = new Sound();
         inventory = new Inventory();
         loadImages();
         loadCreatures();
         loadUI();
         loadValues();
-        sound.playPeacefulMusic();
+        Thread t = new Thread(new Runnable(){
+            @Override
+            public void run() {
+                new Sound();
+            }
+        });
+        t.start();
     }
 
     private void loadImages() {

@@ -6,21 +6,20 @@ public class Sound {
 
     Clip clip;
     public Sound() {
-
+        playPeacefulMusic();
     }
 
     public void playPeacefulMusic() {
 
         try {
-            stopPlay();
-            AudioInputStream inputStream = AudioSystem
-                    .getAudioInputStream(getClass().getResourceAsStream("/sound/doom.wav"));
-            clip = AudioSystem.getClip();
-            clip.open(inputStream);
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("sound/peaceful.wav").getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
             clip.start();
-        } catch (Exception e) {
-            stopPlay();
-            System.err.println(e.getMessage());
+           // Thread.sleep(3000);
+        }
+        catch(Exception ex) {
+            System.out.println(ex.fillInStackTrace());
         }
     }
 
