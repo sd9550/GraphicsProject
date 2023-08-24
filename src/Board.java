@@ -24,11 +24,10 @@ public class Board extends JPanel implements ActionListener, KeyListener {
     public static final int BOARD_HEIGHT = 630;
     public static final int STATUS_HEIGHT = 50;
     private static final int STATUS_HEIGHT_DIFF = STATUS_HEIGHT * 2;
+    private final String DEFAULT_GOBLIN_LABEL = "Goblin ? | Health: ?? | Energy: ????? | Role: ????";
     private Image firstGrass, secondGrass, slime, dirt, rock, torch, pot, selected;
-    //private short[] levelData = new short[N_BLOCKS * N_BLOCKS];
-    private Goblin firstGoblin, secondGoblin, thirdGoblin;
+    private Goblin firstGoblin, secondGoblin, thirdGoblin, fourthGoblin;
     private Inventory inventory;
-    private Sound sound;
     private Timer timer;
     private int currentDay, dayTimer;
     private JLabel dayLabel, goblinLabel, inventoryLabel;
@@ -40,13 +39,7 @@ public class Board extends JPanel implements ActionListener, KeyListener {
         loadCreatures();
         loadUI();
         loadValues();
-        Thread t = new Thread(new Runnable(){
-            @Override
-            public void run() {
-                new Sound();
-            }
-        });
-        t.start();
+        loadMusic();
     }
 
     private void loadImages() {
@@ -66,10 +59,12 @@ public class Board extends JPanel implements ActionListener, KeyListener {
         firstGoblin = new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.MINER);
         secondGoblin = new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.GUARD);
         thirdGoblin = new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.CRAFTER);
+        fourthGoblin = new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.GATHERER);
 
         goblins.add(firstGoblin);
         goblins.add(secondGoblin);
         goblins.add(thirdGoblin);
+        goblins.add(fourthGoblin);
     }
 
     private void loadUI() {
@@ -80,10 +75,11 @@ public class Board extends JPanel implements ActionListener, KeyListener {
         dayLabel = new JLabel();
         dayLabel.setFont(new Font("Verdana", Font.PLAIN, 32));
         dayLabel.setForeground(Color.WHITE);
-        dayLabel.setText("Day " + currentDay);
+        dayLabel.setText("Day 1");
         goblinLabel = new JLabel();
         goblinLabel.setFont(new Font("Verdana", Font.PLAIN, 16));
         goblinLabel.setForeground(Color.WHITE);
+        goblinLabel.setText(DEFAULT_GOBLIN_LABEL);
         inventoryLabel = new JLabel();
         inventoryLabel.setFont(new Font("Verdana", Font.PLAIN, 16));
         inventoryLabel.setForeground(Color.WHITE);
@@ -98,6 +94,11 @@ public class Board extends JPanel implements ActionListener, KeyListener {
         dayTimer = 0;
         timer = new Timer(50, this);
         timer.start();
+    }
+
+    private void loadMusic() {
+        Thread t = new Thread(Sound::new);
+        t.start();
     }
 
     @Override
@@ -115,7 +116,7 @@ public class Board extends JPanel implements ActionListener, KeyListener {
     private void drawWorld(Graphics2D g2d) {
         short i = 0;
         int x, y;
-
+        // paints the level based on number in array
         for (y = STATUS_HEIGHT_DIFF; y < SCREEN_SIZE; y += BLOCK_SIZE) {
             for (x = 0; x < SCREEN_SIZE; x += BLOCK_SIZE) {
                 if (worldData[i] == 0) {
@@ -149,6 +150,7 @@ public class Board extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    // timer triggers this every 50 ms to repaint and move around goblins as needed
     public void actionPerformed(ActionEvent e) {
         dayTimer += 1;
 
@@ -167,6 +169,7 @@ public class Board extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    // updates the label when a number is pressed
     @Override
     public void keyTyped(KeyEvent e) {
         char keyChar = e.getKeyChar();
@@ -175,12 +178,17 @@ public class Board extends JPanel implements ActionListener, KeyListener {
         try {
             for (Goblin goblin : goblins)
                 goblin.setDeselected();
-            goblinLabel.setText("Goblin " + keyNumber + " - " + "Health: " + goblins.get(index).getHealth() + " Sleep: " + goblins.get(index).getSleepLevelString() + " Role: " + goblins.get(index).getCurrentRole());
+            goblinLabel.setText("Goblin " + keyNumber + " | " + "Health: " + goblins.get(index).getHealth() + " | Energy: " + goblins.get(index).getSleepLevelString() + " | Role: " + goblins.get(index).getCurrentRole());
             goblins.get(index).setSelected();
         } catch (IndexOutOfBoundsException ex) {
-            goblinLabel.setText("");
+            goblinLabel.setText(DEFAULT_GOBLIN_LABEL);
             for (Goblin goblin : goblins)
                 goblin.setDeselected();
+        } catch (Exception ex) {
+            goblinLabel.setText(DEFAULT_GOBLIN_LABEL);
+            for (Goblin goblin : goblins)
+                goblin.setDeselected();
+            System.out.println("Error: " + ex);
         }
     }
 

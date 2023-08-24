@@ -5,6 +5,7 @@ public class Goblin extends Creature {
     public static final int MINER = 0;
     public static final int GUARD = 1;
     public static final int CRAFTER = 2;
+    public static final int GATHERER = 3;
     private final int MOVEMENT_SPEED = 5;
     private final int UPPER_BOUND = 1000;
     private static final String DEFAULT_IMAGE = "images/creatures/goblin2.png";
@@ -15,25 +16,23 @@ public class Goblin extends Creature {
     private int currentRole;
     private int miningProgress;
     private int sleepLevel;
-    private int funLevel;
-    private int fearLevel;
-    private int xSteps, ySteps;
+    private int xSteps, ySteps, xDistanceFromLoc, yDistanceFromLoc;
     private boolean isSleeping, arrivedX, arrivedY, isSelected;
-    private Random random = new Random();
+    private final Random random = new Random();
     private PersonalInventory inv;
 
     public Goblin(int h, String img, int x, int y, int role) {
         super(h, img, x, y);
         this.inv = new PersonalInventory();
         this.sleepLevel = random.nextInt(UPPER_BOUND);
-        this.funLevel = random.nextInt(UPPER_BOUND);
-        this.fearLevel = random.nextInt(UPPER_BOUND);
         this.currentRole = role;
         this.isSleeping = false;
         this.isSelected = false;
         this.miningProgress = 0;
         this.arrivedX = false;
         this.arrivedY = false;
+        this.xDistanceFromLoc = 0;
+        this.yDistanceFromLoc = 0;
     }
 
     public void goblinBehavior() {
@@ -42,14 +41,28 @@ public class Goblin extends Creature {
         }
         else if (currentRole == MINER && !this.isSleeping) {
             if (this.miningProgress > UPPER_BOUND) {
-                this.returnGoods();
+                this.resetArrived();
+                this.startWalking(TerrainLocations.GOODS_AREA);
+                if (this.arrivedX && this.arrivedY)
+                    this.returnGoods();
             }
-            else
-                this.startMining();
+            else {
+                if (!this.arrivedX || !this.arrivedY)
+                    this.startWalking(TerrainLocations.ROCKS);
+                else {
+                    this.startMining();
+                }
+            }
         } else if (currentRole == GUARD && !this.isSleeping) {
-            this.startGuarding();
+            if (!this.arrivedX || !this.arrivedY)
+                this.startWalking(TerrainLocations.ENTRANCE);
+            else
+                this.startGuarding();
         } else if (currentRole == CRAFTER && !this.isSleeping) {
-            this.startCrafting();
+            if (!this.arrivedX || !this.arrivedY)
+                this.startWalking(TerrainLocations.CRAFTING_AREA);
+            else
+                this.startCrafting();
         }
 
         if (!this.isSleeping) {
@@ -68,123 +81,64 @@ public class Goblin extends Creature {
         this.setCreatureImage(SLEEPING_IMAGE);
     }
 
-    private void startWalking() {
-        int xDistanceFromRocks = 50 - this.getX();
-        int yDistanceFromRocks = 150 - this.getY();
-        this.xSteps = xDistanceFromRocks / 5;
-        this.ySteps = yDistanceFromRocks / 5;
+    private void startWalking(int loc) {
+        if (loc == TerrainLocations.ROCKS) {
+            xDistanceFromLoc = 50 - this.getX();
+            yDistanceFromLoc = 150 - this.getY();
+        } else if (loc == TerrainLocations.ENTRANCE) {
+            xDistanceFromLoc = 500 - this.getX();
+            yDistanceFromLoc = 400 - this.getY();
+        } else if (loc == TerrainLocations.CRAFTING_AREA) {
+            xDistanceFromLoc = 100 - this.getX();
+            yDistanceFromLoc = 560 - this.getY();
+        } else if (loc == TerrainLocations.GOODS_AREA) {
+            this.setCreatureImage(DEFAULT_IMAGE);
+            xDistanceFromLoc = 150 - this.getX();
+            yDistanceFromLoc = 560 - this.getY();
+        }
+
+        this.xSteps = xDistanceFromLoc / MOVEMENT_SPEED;
+        this.ySteps = yDistanceFromLoc / MOVEMENT_SPEED;
+
+        if (xSteps < 0) {
+            this.setX(this.getX() - MOVEMENT_SPEED);
+        } else if (xSteps > 0) {
+            this.setX(this.getX() + MOVEMENT_SPEED);
+        } else {
+            this.arrivedX = true;
+        }
+
+        if (ySteps < 0) {
+            this.setY(this.getY() - MOVEMENT_SPEED);
+        } else if (ySteps > 0) {
+            this.setY(this.getY() + MOVEMENT_SPEED);
+        } else {
+            this.arrivedY = true;
+        }
     }
 
     private void startMining() {
-        int xDistanceFromRocks = 50 - this.getX();
-        int yDistanceFromRocks = 150 - this.getY();
-        this.xSteps = xDistanceFromRocks / 5;
-        this.ySteps = yDistanceFromRocks / 5;
-
-        if (xSteps < 0) {
-            this.setX(this.getX() - MOVEMENT_SPEED);
-        } else if (xSteps > 0) {
-            this.setX(this.getX() + MOVEMENT_SPEED);
-        } else {
-            this.arrivedX = true;
-        }
-
-        if (ySteps < 0) {
-            this.setY(this.getY() - MOVEMENT_SPEED);
-        } else if (ySteps > 0) {
-            this.setY(this.getY() + MOVEMENT_SPEED);
-        } else {
-            this.arrivedY = true;
-        }
-
-        if (this.arrivedX && this.arrivedY) {
-            this.setCreatureImage(MINING_IMAGE);
-            this.miningProgress += 10;
-            System.out.println(miningProgress);
-        }
+        this.setCreatureImage(MINING_IMAGE);
+        this.miningProgress += 10;
     }
 
     private void startGuarding() {
-        int xDistanceFromEntrance = 500 - this.getX();
-        int yDistanceFromEntrance = 400 - this.getY();
-        this.xSteps = xDistanceFromEntrance / 5;
-        this.ySteps = yDistanceFromEntrance / 5;
-
-        if (xSteps < 0) {
-            this.setX(this.getX() - MOVEMENT_SPEED);
-        } else if (xSteps > 0) {
-            this.setX(this.getX() + MOVEMENT_SPEED);
-        } else {
-            this.arrivedX = true;
-        }
-
-        if (ySteps < 0) {
-            this.setY(this.getY() - MOVEMENT_SPEED);
-        } else if (ySteps > 0) {
-            this.setY(this.getY() + MOVEMENT_SPEED);
-        } else {
-            this.arrivedY = true;
-        }
-
-        if (this.arrivedX && this.arrivedY) {
-            this.setCreatureImage(GUARDING_IMAGE);
-        }
+        this.setCreatureImage(GUARDING_IMAGE);
     }
 
     public void startCrafting() {
-        int xDistanceFromGrass = 100 - this.getX();
-        int yDistanceFromGrass = 560 - this.getY();
-        this.xSteps = xDistanceFromGrass / 5;
-        this.ySteps = yDistanceFromGrass / 5;
-
-        if (xSteps < 0) {
-            this.setX(this.getX() - MOVEMENT_SPEED);
-        } else if (xSteps > 0) {
-            this.setX(this.getX() + MOVEMENT_SPEED);
-        } else {
-            this.arrivedX = true;
-        }
-
-        if (ySteps < 0) {
-            this.setY(this.getY() - MOVEMENT_SPEED);
-        } else if (ySteps > 0) {
-            this.setY(this.getY() + MOVEMENT_SPEED);
-        } else {
-            this.arrivedY = true;
-        }
-
-        if (this.arrivedX && this.arrivedY) {
-            this.setCreatureImage(CRAFTING_IMAGE);
-        }
+        this.setCreatureImage(CRAFTING_IMAGE);
     }
 
     private void returnGoods() {
-        this.setCreatureImage(DEFAULT_IMAGE);
-        int xDistanceFromGrass = 150 - this.getX();
-        int yDistanceFromGrass = 560 - this.getY();
-        this.xSteps = xDistanceFromGrass / 5;
-        this.ySteps = yDistanceFromGrass / 5;
+        this.inv.addRocksToMainInventory(10);
+        this.miningProgress = 0;
+        this.resetArrived();
+    }
 
-        if (xSteps < 0) {
-            this.setX(this.getX() - MOVEMENT_SPEED);
-        } else if (xSteps > 0) {
-            this.setX(this.getX() + MOVEMENT_SPEED);
-        } else {
-            this.arrivedX = true;
-        }
-
-        if (ySteps < 0) {
-            this.setY(this.getY() - MOVEMENT_SPEED);
-        } else if (ySteps > 0) {
-            this.setY(this.getY() + MOVEMENT_SPEED);
-        } else {
-            this.arrivedY = true;
-        }
-
-        if (this.arrivedX && this.arrivedY) {
-            this.inv.addRocksToMainInventory(10);
-            this.miningProgress = 0;
-        }
+    private void resetArrived() {
+        this.arrivedX = false;
+        this.arrivedY = false;
     }
 
     public int getSleepLevel() {
@@ -204,14 +158,6 @@ public class Goblin extends Creature {
         return sleepString;
     }
 
-    public int getFunLevel() {
-        return funLevel;
-    }
-
-    public int getFearLevel() {
-        return fearLevel;
-    }
-
     public void setCurrentRole(int r) {
         this.currentRole = r;
     }
@@ -221,8 +167,10 @@ public class Goblin extends Creature {
             return "Miner";
         else if (this.currentRole == GUARD)
             return "Guard";
-        else
+        else if (this.currentRole == CRAFTER)
             return "Crafter";
+        else
+            return "Gatherer";
     }
 
     public void setSelected() {
