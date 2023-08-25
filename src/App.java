@@ -11,6 +11,7 @@ public class App extends JFrame {
     public static void main(String[] args) {
         EventQueue.invokeLater(() -> {
             var app = new App();
+            app.setResizable(false);
             app.setVisible(true);
         });
     }

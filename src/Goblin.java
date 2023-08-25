@@ -15,11 +15,12 @@ public class Goblin extends Creature {
     private static final String SLEEPING_IMAGE = "images/creatures/sleep.gif";
     private static final String WALK_LEFT = "images/creatures/walk-left.gif";
     private static final String WALK_RIGHT = "images/creatures/walk-right.gif";
+    public static final String ATTACK_IMAGE = "images/creatures/attack.gif";
     private int currentRole;
     private int miningProgress;
     private int sleepLevel, waitLevel;
     private int xSteps, ySteps, xDistanceFromLoc, yDistanceFromLoc;
-    private boolean isSleeping, arrivedX, arrivedY, isSelected;
+    private boolean isSleeping, arrivedX, arrivedY, isSelected, isCraftingAltar;
     private final Random random = new Random();
     private PersonalInventory inv;
 
@@ -34,6 +35,7 @@ public class Goblin extends Creature {
         this.miningProgress = 0;
         this.arrivedX = false;
         this.arrivedY = false;
+        this.isCraftingAltar = false;
         this.xDistanceFromLoc = 0;
         this.yDistanceFromLoc = 0;
     }
@@ -62,10 +64,24 @@ public class Goblin extends Creature {
             else
                 this.startGuarding();
         } else if (currentRole == CRAFTER && !this.isSleeping) {
-            if (!this.arrivedX || !this.arrivedY)
-                this.startWalking(TerrainLocations.CRAFTING_AREA);
-            else
-                this.startCrafting();
+            if (this.isCraftingAltar) {
+                    this.startWalking(TerrainLocations.ALTAR);
+                    if (this.getX() == TerrainLocations.ALTAR_X && this.getY() == TerrainLocations.ALTAR_Y) {
+                        this.setCreatureImage(CRAFTING_IMAGE);
+                        this.startWaiting();
+                        if (this.waitLevel > 200) {
+                            Crafting.altarWasCrafted = true;
+                            this.waitLevel = 0;
+                            this.isCraftingAltar = false;
+                            this.resetArrived();
+                        }
+                    }
+            } else {
+                if (!this.arrivedX || !this.arrivedY)
+                    this.startWalking(TerrainLocations.CRAFTING_AREA);
+                else
+                    this.startCrafting();
+            }
         } else if (currentRole == GATHERER && !this.isSleeping) {
             if (!this.arrivedX || !this.arrivedY) {
                 this.startWalking(TerrainLocations.OUTSIDE);
@@ -115,6 +131,9 @@ public class Goblin extends Creature {
         } else if (loc == TerrainLocations.OUTSIDE) {
             xDistanceFromLoc = 650 - this.getX();
             yDistanceFromLoc = 350 - this.getY();
+        } else if (loc == TerrainLocations.ALTAR) {
+            xDistanceFromLoc = TerrainLocations.ALTAR_X - this.getX();
+            yDistanceFromLoc = TerrainLocations.ALTAR_Y - this.getY();
         }
 
         this.xSteps = xDistanceFromLoc / MOVEMENT_SPEED;
@@ -163,8 +182,12 @@ public class Goblin extends Creature {
         this.resetArrived();
     }
 
-    private void startWaiting() {
+    public void startWaiting() {
         this.waitLevel += 1;
+    }
+
+    public int getWaiting() {
+        return this.waitLevel;
     }
 
     private void resetArrived() {
@@ -216,4 +239,16 @@ public class Goblin extends Creature {
         return this.isSelected;
     }
 
+    public void setAwake() {
+        if (this.isSleeping)
+            this.isSleeping = false;
+    }
+
+    public boolean isCraftingAltar() {
+        return isCraftingAltar;
+    }
+
+    public void setCraftingAltar(boolean craftingAltar) {
+        isCraftingAltar = craftingAltar;
+    }
 }
