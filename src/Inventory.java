@@ -2,11 +2,13 @@ public class Inventory {
 
     private int totalRocks, totalWood;
     public static int returnedRocks;
+    public static int returnedWood;
 
     public Inventory() {
         this.totalRocks = 0;
         this.totalWood = 0;
         returnedRocks = 0;
+        returnedWood = 0;
     }
 
     public int getTotalRocks() {
@@ -20,6 +22,8 @@ public class Inventory {
     }
 
     public int getTotalWood() {
+        this.totalWood += returnedWood;
+        returnedWood -= returnedWood;
         return totalWood;
     }
 

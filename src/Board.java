@@ -10,28 +10,31 @@ public class Board extends JPanel implements ActionListener, KeyListener {
     private final int SCREEN_SIZE = N_BLOCKS * BLOCK_SIZE;
     // 0 = dirt, 1 = rock, 2 = torch, 3/4 = grass, 5 = pot
     private final short[] worldData = {
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-            0, 3, 4, 3, 0, 0, 0, 0, 0, 0,
-            0, 4, 3, 4, 5, 0, 0, 0, 0, 0,
+            10, 6, 6, 6, 6, 6, 6, 6, 6, 9,
+            8, 1, 0, 0, 0, 0, 0, 0, 0, 7,
+            8, 1, 0, 0, 0, 0, 0, 0, 0, 7,
+            8, 0, 0, 0, 0, 0, 0, 0, 0, 7,
+            8, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+            8, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            8, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+            8, 3, 4, 3, 0, 0, 0, 0, 0, 7,
+            8, 4, 3, 4, 0, 0, 0, 0, 0, 7,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     public static final int BOARD_WIDTH = 610;
     public static final int BOARD_HEIGHT = 630;
     public static final int STATUS_HEIGHT = 50;
     private static final int STATUS_HEIGHT_DIFF = STATUS_HEIGHT * 2;
     private final String DEFAULT_GOBLIN_LABEL = "Goblin ? | Health: ?? | Energy: ????? | Role: ????";
-    private Image firstGrass, secondGrass, slime, dirt, rock, torch, pot, selected;
-    private Goblin firstGoblin, secondGoblin, thirdGoblin, fourthGoblin;
+    private Image firstGrass, secondGrass, dirt, rock, torch, pot, selected;
+    private Image wallTop, wallLeft, wallRight, wallTopLeft, wallTopRight;
+    //private Goblin firstGoblin, secondGoblin, thirdGoblin, fourthGoblin;
     private Inventory inventory;
     private Timer timer;
     private int currentDay, dayTimer;
     private JLabel dayLabel, goblinLabel, inventoryLabel;
     private ArrayList<Goblin> goblins = new ArrayList<>();
+    private boolean testSpawnEnemy = true;
+    private Slime redSlime;
 
     public Board() {
         inventory = new Inventory();
@@ -44,27 +47,30 @@ public class Board extends JPanel implements ActionListener, KeyListener {
 
     private void loadImages() {
         dirt = new ImageIcon("images/terrain/dirt.jpg").getImage();
-        //tree = new ImageIcon("images/tree2.jpg").getImage();
         firstGrass = new ImageIcon("images/terrain/grass1.png").getImage();
         secondGrass = new ImageIcon("images/terrain/grass2.png").getImage();
-        slime = new ImageIcon("images/slime3.png").getImage();
         rock = new ImageIcon("images/terrain/rock4.png").getImage();
         torch = new ImageIcon("images/Torch.png").getImage();
         pot = new ImageIcon("images/pot.png").getImage();
-        //bottles = new ImageIcon("images/bottles.png").getImage();
         selected = new ImageIcon("images/selected.png").getImage();
+        wallTop = new ImageIcon("images/wall/wall-top.png").getImage();
+        wallLeft = new ImageIcon("images/wall/wall-left.png").getImage();
+        wallRight = new ImageIcon("images/wall/wall-right.png").getImage();
+        wallTopLeft = new ImageIcon("images/wall/wall-top-left.png").getImage();
+        wallTopRight = new ImageIcon("images/wall/wall-top-right.png").getImage();
     }
 
     private void loadCreatures() {
-        firstGoblin = new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.MINER);
-        secondGoblin = new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.GUARD);
-        thirdGoblin = new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.CRAFTER);
-        fourthGoblin = new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.GATHERER);
+//        firstGoblin = new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.MINER);
+//        secondGoblin = new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.GUARD);
+//        thirdGoblin = new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.CRAFTER);
+//        fourthGoblin = new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.GATHERER);
+        redSlime = new Slime(10, "images/creatures/red-slime.gif", 550, 400);
 
-        goblins.add(firstGoblin);
-        goblins.add(secondGoblin);
-        goblins.add(thirdGoblin);
-        goblins.add(fourthGoblin);
+        goblins.add(new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.MINER));
+        goblins.add(new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.GUARD));
+        goblins.add(new Goblin(10, "images/creatures/goblin2.png", 300, 300, Goblin.CRAFTER));
+        goblins.add(new Goblin(10, "images/creatures/goblin2.png", 300, 400, Goblin.GATHERER));
     }
 
     private void loadUI() {
@@ -123,7 +129,7 @@ public class Board extends JPanel implements ActionListener, KeyListener {
                     g2d.drawImage(dirt, x, y, this);
                 } else if (worldData[i] == 1) {
                     g2d.drawImage(dirt, x, y, this);
-                    g2d.drawImage(rock, x, y, this);
+                    g2d.drawImage(rock, x - 40, y, this);
                 } else if (worldData[i] == 2) {
                     g2d.drawImage(dirt, x, y, this);
                     g2d.drawImage(torch, x, y, this);
@@ -136,9 +142,27 @@ public class Board extends JPanel implements ActionListener, KeyListener {
                 } else if (worldData[i] == 5) {
                     g2d.drawImage(dirt, x, y, this);
                     g2d.drawImage(pot, x, y, this);
+                } else if (worldData[i] == 6) {
+                    g2d.drawImage(wallTop, x, y, this);
+                } else if (worldData[i] == 7) {
+                    g2d.drawImage(dirt, x, y, this);
+                    g2d.drawImage(wallRight, x, y, this);
+                } else if (worldData[i] == 8) {
+                    g2d.drawImage(dirt, x, y, this);
+                    g2d.drawImage(wallLeft, x, y, this);
+                } else if (worldData[i] == 9) {
+                    g2d.drawImage(dirt, x, y, this);
+                    g2d.drawImage(wallTopRight, x, y, this);
+                } else if (worldData[i] == 10) {
+                    g2d.drawImage(dirt, x, y, this);
+                    g2d.drawImage(wallTopLeft, x, y, this);
                 }
                 i++;
             }
+        }
+
+        if (testSpawnEnemy) {
+            g2d.drawImage(redSlime.getCreatureImage(), redSlime.getX(), redSlime.getY(), this);
         }
     }
 

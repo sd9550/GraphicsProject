@@ -16,10 +16,10 @@ public class Sound {
             Clip clip = AudioSystem.getClip();
             clip.open(audioInputStream);
             clip.start();
-           // Thread.sleep(3000);
+            clip.loop(3);
         }
         catch(Exception ex) {
-            System.out.println(ex.fillInStackTrace());
+            System.out.println("Error" + ex.fillInStackTrace());
         }
     }
 
